@@ -1,15 +1,23 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb+srv://users:GVjQV3zYK1ErvCcF@cluster0.fyweio6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-    ),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => {
+        const uri = cfg.get<string>('MONGODB_URI');
+        console.log('Conectando a MongoDB con URI:', uri);
+        return {
+          uri,
+        };
+      },
+    }),
     UsersModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
